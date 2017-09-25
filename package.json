@@ -1,0 +1,22 @@
+{
+  "name": "three.js-data",
+  "version": "1.0.0",
+  "description": "A data visualizer based on three.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stephen-lt-sl/three.js-data.git"
+  },
+  "author": "Stephen Livermore-Tozer",
+  "license": "MIT License",
+  "bugs": {
+    "url": "https://github.com/stephen-lt-sl/three.js-data/issues"
+  },
+  "homepage": "https://github.com/stephen-lt-sl/three.js-data#readme",
+  "dependencies": {
+    "three": "^0.87.1"
+  }
+}
