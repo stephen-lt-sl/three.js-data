@@ -1,19 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Data Visualizer</title>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Data Visualizer</title>
 
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script>
-		<script src="box.js"></script>
-	</head>
-	<body>
-		<div id="container"></div>
-		<script>
-			var container = document.getElementById('container');
-			box(container);
-		</script>
-	</body>
+    <script src="../node_modules/three/build/three.min.js"></script>
+    <script src="../node_modules/three/examples/js/GPUComputationRenderer.js"></script>
+    <script src="particles.js"></script>
+</head>
+<body>
+
+<!-- Particles vertex shader -->
+<script type="x-shader/x-vertex" id="particleVertexShader">
+
+			// For PI declaration:
+			#include <common>
+
+			#define MASS 2.0
+			#define DENSITY 0.45
+
+			uniform sampler2D texturePosition;
+
+			uniform float cameraConstant;
+
+			varying vec4 vColor;
+
+			float radiusFromMass( float mass ) {
+				// Calculate radius of a sphere from mass and density
+				return pow( ( 3.0 / ( 4.0 * PI ) ) * mass / DENSITY, 1.0 / 3.0 );
+			}
+
+
+			void main() {
+
+
+				vec4 posTemp = texture2D( texturePosition, uv );
+				vec3 pos = posTemp.xyz;
+
+				vColor = vec4( 1.0, MASS / 250.0, 0.0, 1.0 );
+
+				vec4 mvPosition = modelViewMatrix * vec4( pos, 1.0 );
+
+				float radius = radiusFromMass( MASS );
+
+				// Apparent size in pixels
+				if ( MASS == 0.0 ) {
+					gl_PointSize = 0.0;
+				}
+				else {
+					gl_PointSize = radius * cameraConstant / ( - mvPosition.z );
+				}
+
+				gl_Position = projectionMatrix * mvPosition;
+
+			}
+
+</script>
+
+<!-- Particles fragment shader -->
+<script type="x-shader/x-fragment" id="particleFragmentShader">
+
+			varying vec4 vColor;
+
+			void main() {
+
+				float f = length( gl_PointCoord - vec2( 0.5, 0.5 ) );
+				if ( f > 0.5 ) {
+					discard;
+				}
+				gl_FragColor = vColor;
+
+			}
+
+</script>
+
+<div id="container"></div>
+<script>
+    var container = document.getElementById('container');
+    var vertexShader = document.getElementById('particleVertexShader').textContent;
+    var fragmentShader = document.getElementById('particleFragmentShader').textContent;
+    particles(container, vertexShader, fragmentShader);
+</script>
+</body>
 </html>
