@@ -1,6 +1,8 @@
-function particles(containerElt, particleVertexShader, particleFragmentShader) {
+function particles(containerElt, particleVertexShader, particleFragmentShader, positionComputeShader) {
     var camera, scene, renderer, geometry;
     var particleUniforms;
+    var gpuCompute;
+    var positionVariable, positionUniforms;
 
     var WIDTH = 64;
     var PARTICLES = WIDTH * WIDTH;
@@ -24,9 +26,33 @@ function particles(containerElt, particleVertexShader, particleFragmentShader) {
         renderer.setSize(window.innerWidth, window.innerHeight);
         containerElt.appendChild(renderer.domElement);
 
+        initComputeRenderer();
+
         initParticles();
 
         window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function initComputeRenderer() {
+        // noinspection JSSuspiciousNameCombination
+        gpuCompute = new GPUComputationRenderer(WIDTH, WIDTH, renderer);
+
+        var dtPosition = gpuCompute.createTexture();
+
+        initTextures(dtPosition);
+
+        positionVariable = gpuCompute.addVariable("texturePosition", positionComputeShader, dtPosition);
+
+        gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
+
+        positionUniforms = positionVariable.material.uniforms;
+
+        var error = gpuCompute.init();
+
+        if (error !== null) {
+            console.error(error);
+        }
+
     }
 
     function initParticles() {
@@ -51,13 +77,8 @@ function particles(containerElt, particleVertexShader, particleFragmentShader) {
         geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
-        var particleArrayPosition = new Float32Array(WIDTH * WIDTH * 4);
-        var particleTexturePosition = new THREE.DataTexture(particleArrayPosition, WIDTH, WIDTH, THREE.RGBAFormat, THREE.FloatType);
-        particleTexturePosition.needsUpdate = true;
-        initTextures(particleTexturePosition);
-
         particleUniforms = {
-            texturePosition: {value: particleTexturePosition},
+            texturePosition: {value: null},
             cameraConstant: {value: getCameraConstant(camera)}
         };
 
@@ -121,6 +142,10 @@ function particles(containerElt, particleVertexShader, particleFragmentShader) {
     }
 
     function render() {
+        gpuCompute.compute();
+
+        particleUniforms.texturePosition.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
+
         renderer.render(scene, camera);
     }
 }
