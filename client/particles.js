@@ -1,5 +1,5 @@
 function particles(containerElt, particleVertexShader, particleFragmentShader, positionComputeShader) {
-    var camera, scene, renderer, geometry;
+    var camera, controls, scene, renderer, geometry;
     var particleUniforms;
     var gpuCompute;
     var positionVariable, positionUniforms;
@@ -18,6 +18,10 @@ function particles(containerElt, particleVertexShader, particleFragmentShader, p
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 5, 15000);
         camera.position.y = 120;
         camera.position.z = 400;
+
+        controls = new THREE.OrbitControls(camera);
+        controls.minDistance = 400;
+        controls.maxDistance = 1000;
 
         scene = new THREE.Scene();
 
