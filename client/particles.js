@@ -4,7 +4,7 @@ function particles(containerElt, particleVertexShader, particleFragmentShader, p
     var gpuCompute;
     var positionVariable, positionUniforms;
 
-    var WIDTH = 64;
+    var WIDTH = 256;
     var PARTICLES = WIDTH * WIDTH;
 
     var radius = 300;
@@ -62,14 +62,6 @@ function particles(containerElt, particleVertexShader, particleFragmentShader, p
     function initParticles() {
         geometry = new THREE.BufferGeometry();
 
-        var positions = new Float32Array(PARTICLES * 3);
-
-        for (var particle = 0; particle < PARTICLES; ++particle) {
-            for (var dimension = 0; dimension < 3; ++dimension) {
-                positions[(particle * 3) + dimension] = (Math.random() * 2 - 1) * radius;
-            }
-        }
-
         var uvs = new Float32Array(PARTICLES * 2);
         for (var i = 0; i < WIDTH; ++i) {
             for (var j = 0; j < WIDTH; ++j) {
@@ -78,7 +70,7 @@ function particles(containerElt, particleVertexShader, particleFragmentShader, p
             }
         }
 
-        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(PARTICLES * 3), 3));
         geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
         particleUniforms = {
