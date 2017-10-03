@@ -25,12 +25,36 @@
         vec4 tmpPos = texture2D(texturePosition, uv);
         vec3 pos = tmpPos.xyz;
 
-        vec3 vel = vec3(0.0, 5.0, 0.0);
-        float mass = 1.0;
+        vec4 tmpVel = texture2D(textureVelocity, uv);
+        vec3 vel = tmpVel.xyz;
+        float mass = tmpVel.w;
 
         pos += vel * delta;
 
         gl_FragColor = vec4(pos, 1.0);
+    }
+</script>
+
+<!-- Velocity compute shader -->
+<script type="x-shader/x-fragment" id="velocityComputeShader">
+
+    #define delta (1.0/60.0)
+
+    uniform float time;
+
+    void main() {
+
+        vec2 uv = gl_FragCoord.xy / resolution.xy;
+
+        vec4 tmpVel = texture2D(textureVelocity, uv);
+        vec3 vel = tmpVel.xyz;
+        float mass = tmpVel.w;
+
+        vec3 acceleration = vec3(0.0, 0.5, 0.0);
+
+        vel += acceleration * delta;
+
+        gl_FragColor = vec4(vel, mass);
     }
 </script>
 
@@ -98,9 +122,10 @@
 <script>
     var container = document.getElementById('container');
     var positionComputeShader = document.getElementById('positionComputeShader').textContent;
+    var velocityComputeShader = document.getElementById('velocityComputeShader').textContent;
     var vertexShader = document.getElementById('particleVertexShader').textContent;
     var fragmentShader = document.getElementById('particleFragmentShader').textContent;
-    particles(container, vertexShader, fragmentShader, positionComputeShader);
+    particles(container, vertexShader, fragmentShader, positionComputeShader, velocityComputeShader);
 </script>
 </body>
 </html>

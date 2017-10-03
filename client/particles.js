@@ -1,8 +1,8 @@
-function particles(containerElt, particleVertexShader, particleFragmentShader, positionComputeShader) {
+function particles(containerElt, particleVertexShader, particleFragmentShader, positionComputeShader, velocityComputeShader) {
     var camera, controls, scene, renderer, geometry;
     var particleUniforms;
     var gpuCompute;
-    var positionVariable, positionUniforms;
+    var positionVariable, positionUniforms, velocityUniforms;
 
     var WIDTH = 256;
     var PARTICLES = WIDTH * WIDTH;
@@ -41,15 +41,21 @@ function particles(containerElt, particleVertexShader, particleFragmentShader, p
         // noinspection JSSuspiciousNameCombination
         gpuCompute = new GPUComputationRenderer(WIDTH, WIDTH, renderer);
 
+        var dtVelocity = gpuCompute.createTexture();
         var dtPosition = gpuCompute.createTexture();
 
-        initTextures(dtPosition);
+        initTextures(dtPosition, dtVelocity);
 
+        velocityVariable = gpuCompute.addVariable("textureVelocity", velocityComputeShader, dtVelocity);
         positionVariable = gpuCompute.addVariable("texturePosition", positionComputeShader, dtPosition);
 
-        gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
+        gpuCompute.setVariableDependencies(velocityVariable, [velocityVariable]);
+        gpuCompute.setVariableDependencies(positionVariable, [positionVariable, velocityVariable]);
 
+        velocityUniforms = velocityVariable.material.uniforms;
         positionUniforms = positionVariable.material.uniforms;
+
+        velocityUniforms.time = { value: 0.0 };
 
         var error = gpuCompute.init();
 
@@ -93,8 +99,9 @@ function particles(containerElt, particleVertexShader, particleFragmentShader, p
         scene.add(particles);
     }
 
-    function initTextures(texturePosition) {
+    function initTextures(texturePosition, textureVelocity) {
         var posArray = texturePosition.image.data;
+        var velArray = textureVelocity.image.data;
 
         var arrayLength = posArray.length;
         for (var k = 0; k < arrayLength; k += 4) {
@@ -113,10 +120,17 @@ function particles(containerElt, particleVertexShader, particleFragmentShader, p
             z *= rExp;
             y = (Math.random() * 2 - 1) * height;
 
+            var mass = 1.0;
+
             posArray[k] = x;
             posArray[k + 1] = y;
             posArray[k + 2] = z;
             posArray[k + 3] = 1;
+
+            velArray[k] = 0.0;
+            velArray[k + 1] = 5.0;
+            velArray[k + 2] = 0.0;
+            velArray[k + 3] = mass;
         }
     }
 
@@ -142,7 +156,8 @@ function particles(containerElt, particleVertexShader, particleFragmentShader, p
 
         particleUniforms.texturePosition.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
 
+        velocityUniforms.time.value = velocityUniforms.time.value + (1.0/60.0);
+
         renderer.render(scene, camera);
     }
 }
-
