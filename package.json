@@ -17,6 +17,12 @@
   },
   "homepage": "https://github.com/stephen-lt-sl/three.js-data#readme",
   "dependencies": {
+    "@types/three": "^0.84.28",
+    "lite-server": "^2.3.0",
+    "systemjs": "^0.20.19",
     "three": "^0.87.1"
+  },
+  "scripts": {
+    "dev-server": "lite-server"
   }
 }
